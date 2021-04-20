@@ -28,6 +28,8 @@ import com.infradna.tool.bridge_method_injector.WithBridgeMethods;
 import java.io.IOException;
 import java.util.*;
 
+import static org.kohsuke.github.internal.Previews.INERTIA;
+
 /**
  * Represents an user of GitHub.
  *
@@ -233,6 +235,34 @@ public class GHUser extends GHPerson {
         return root.createRequest()
                 .withUrlPath(String.format("/users/%s/gists", login))
                 .toIterable(GHGist[].class, null);
+    }
+
+    /**
+     * Returns open projects for this user.
+     *
+     * @return the paged iterable
+     * @throws IOException
+     *             the io exception
+     */
+    public PagedIterable<GHProject> listProjects() throws IOException {
+        return listProjects(GHProject.ProjectStateFilter.OPEN);
+    }
+
+    /**
+     * Returns the projects for this user.
+     *
+     * @param status
+     *            The status filter (all, open or closed).
+     * @return the paged iterable
+     * @throws IOException
+     *             the io exception
+     */
+    public PagedIterable<GHProject> listProjects(final GHProject.ProjectStateFilter status) throws IOException {
+        return root.createRequest()
+                .withPreview(INERTIA)
+                .with("state", status)
+                .withUrlPath(getApiTailUrl("projects"))
+                .toIterable(GHProject[].class, item -> item.wrap(root));
     }
 
     @Override
