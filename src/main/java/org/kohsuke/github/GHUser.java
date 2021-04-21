@@ -26,7 +26,9 @@ package org.kohsuke.github;
 import com.infradna.tool.bridge_method_injector.WithBridgeMethods;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static org.kohsuke.github.internal.Previews.INERTIA;
 
@@ -261,8 +263,18 @@ public class GHUser extends GHPerson {
         return root.createRequest()
                 .withPreview(INERTIA)
                 .with("state", status)
-                .withUrlPath(getApiTailUrl("projects"))
+                .withUrlPath(projectsUrl())
                 .toIterable(GHProject[].class, item -> item.wrap(root));
+    }
+
+    private String projectsUrl() {
+        if ("Organization".equals(type)) {
+            return String.format("/orgs/%s/projects", login);
+        } else if ("User".equals(type)) {
+            return getApiTailUrl("projects");
+        } else {
+            throw new IllegalStateException(String.format("Unexpected user type: `%s`.", type));
+        }
     }
 
     @Override
